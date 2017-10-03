@@ -46,6 +46,7 @@ class GeneralActions(HookBaseClass):
         :returns List of dictionaries, each with keys name, params, caption and description
         """
 
+        '''
         paths = (
             '/opt/squeeze/PyCharm/helpers/pydev',
             '/opt/squeeze/PyCharm-2016.2.3/helpers/pydev',
@@ -63,6 +64,7 @@ class GeneralActions(HookBaseClass):
             sys.path.append(path)
         import pydevd
         pydevd.settrace('localhost', port=64304, stdoutToServer=True, stderrToServer=True, suspend=False)
+        '''
 
         app = self.parent
         app.log_debug("Generate actions called for UI element %s. "

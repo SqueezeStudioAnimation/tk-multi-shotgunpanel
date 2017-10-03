@@ -94,6 +94,28 @@ class AppDialog(QtGui.QWidget):
         """
         Constructor
         """
+
+        '''
+        import sys, os
+        paths = (
+            '/opt/squeeze/PyCharm/helpers/pydev',
+            '/opt/squeeze/PyCharm-2016.2.3/helpers/pydev',
+            '/opt/squeeze/PyCharm-2016.3.2/helpers/pydev',
+            '/opt/squeeze/PyCharm-2017.1.1/helpers/pydev',
+            'C:/Program Files (x86)/JetBrains/PyCharm 2016.2.3/helpers/pydev',
+            'C:/Program Files/JetBrains/PyCharm 2017.1.1/helpers/pydev',
+            'C:/Program Files/JetBrains/PyCharm 2017.1.4/helpers/pydev',
+            '/opt/pycharm-professional/helpers/pydev/'  # arch-linux
+        )
+        path = next(iter(path for path in paths if os.path.exists(path)), None)
+        if not path or not os.path.exists(path):
+            raise Exception("Can't connect to pycharm, path doesn't exist: {0}".format(path))
+        if path not in sys.path:
+            sys.path.append(path)
+        import pydevd
+        pydevd.settrace('localhost', port=64304, stdoutToServer=True, stderrToServer=True, suspend=False)
+        '''
+
         # first, call the base class and let it do its thing.
         QtGui.QWidget.__init__(self, parent)
         
@@ -350,6 +372,10 @@ class AppDialog(QtGui.QWidget):
         self._overlay.show_message_pixmap(splash_pix)
         QtCore.QCoreApplication.processEvents()
         QtCore.QTimer.singleShot(SPLASH_UI_TIME_MILLISECONDS, self._overlay.hide)
+
+        # Doesn't see to work at all !
+        if self._app.context.project:
+            self.setWindowTitle('Shotgun: Project {}'.format(self._app.context.project.get('name', 'Unknown')))
 
 
     def closeEvent(self, event):

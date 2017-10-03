@@ -546,6 +546,7 @@ class ShotgunTypeFormatter(object):
                 # show tasks i am assigned to
                 link_filters.append(["task_assignees", "in", [sg_location.entity_dict]])
                 link_filters.append(["sg_status_list", "is_not", "fin"])
+                link_filters.append(["sg_status_list", "is_not", "omt"])
                 if context_project:
                     # we are in a non-site context. only tasks from this project
                     link_filters.append(["project", "is", context_project])
@@ -662,6 +663,8 @@ class ShotgunTypeFormatter(object):
                 # my tasks tab on project
                 link_filters.append(["task_assignees", "in", [self._app.context.user]])
                 link_filters.append(["sg_status_list", "is_not", "fin"])
+                link_filters.append(["sg_status_list", "is_not", "omt"])
+                link_filters.append(["sg_type", "is_not", "Ticket"])
                 link_filters.append(["project", "is", sg_location.entity_dict])
 
             else:
@@ -885,11 +888,11 @@ class ShotgunEntityFormatter(ShotgunTypeFormatter):
         Current description for tasks
         """
         if self._entity_type == "Project":
-            return "Your active tasks for this project."
+            return "Your active tasks for this project (No Tickets)."
 
         elif self.is_current_user and self._app.context.project:
             # project context current user's publishes tab
-            return "Your active tasks for this project."
+            return "Your active tasks for this project (No Tickets)."
 
         elif self.is_current_user and not self._app.context.project:
             # project context current user's publishes tab

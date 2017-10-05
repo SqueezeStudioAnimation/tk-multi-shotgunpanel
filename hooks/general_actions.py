@@ -64,11 +64,11 @@ class GeneralActions(HookBaseClass):
             sys.path.append(path)
         import pydevd
         pydevd.settrace('localhost', port=64304, stdoutToServer=True, stderrToServer=True, suspend=False)
-        '''
 
         app = self.parent
         app.log_debug("Generate actions called for UI element %s. "
                       "Actions: %s. Shotgun Data: %s" % (ui_area, actions, sg_data))
+        '''
         
         action_instances = []
         
@@ -308,9 +308,14 @@ class GeneralActions(HookBaseClass):
         entity = sg.find_one(entity_type, [["id", "is", entity_id]], ["project"])
         project_entity = entity['project']
         entities = [entity]
-        config_entity = sg.find_one('PipelineConfiguration', [["project", "is", project_entity],
-                                                              ["code", "is", "Primary"]], ["id", "code", "descriptor"])
-        config_descriptor = config_entity.pop('descriptor', None)
+
+        if self.parent.tank.pipeline_configuration.is_unmanaged():
+            config_entity = sg.find_one('PipelineConfiguration', [["project", "is", project_entity],
+                                                                  ["code", "is", "Primary"]])
+        else:
+            config_entity = sg.find_one('PipelineConfiguration', [["project", "is", project_entity],
+                                                                  ["id", "is", self.parent.tank.pipeline_configuration.get_shotgun_id()]])
+        # config_descriptor = config_entity.pop('descriptor', None)
 
         # Most of the code bellow have been taken from tk-framework-desktopserver - api_v2.py - _execute_action
 

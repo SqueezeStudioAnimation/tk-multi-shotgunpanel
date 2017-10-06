@@ -78,14 +78,23 @@ class ShotgunFields(HookBaseClass):
             } 
         
         # override 
-        if entity_type == "PublishedFile":
+        if entity_type in ["PublishedFile", "TankPublishedFile"]:
             
             values["top_left"] = "<big>{name} v{version_number}</big>"
             values["top_right"] = "{created_at}"
-            values["body"] = """
-                {published_file_type} by {created_by}<br>
-                <b>Comments:</b> {description}
-                """            
+            if entity_type == "PublishedFile":
+                values["body"] = """
+                    {published_file_type} by {created_by}<br>
+                    ID: {id}<br>
+                    <b>Comments:</b> {description}
+                    """
+            # Not the same field for a tank published file
+            else:
+                values["body"] = """
+                    {tank_type} by {created_by}<br>
+                    ID: {id}<br>
+                    <b>Comments:</b> {description}
+                    """
     
         elif entity_type == "Note":
             
@@ -96,16 +105,19 @@ class ShotgunFields(HookBaseClass):
             
             values["body"] = """
                 <b>By:</b> {user|created_by}<br>
+                ID: {id}<br>
                 <b>Comments:</b> {description}
                 """
         
         elif entity_type == "Task":
             
-            values["top_left"] = "<big>{content}</big>"
+            values["top_left"] = "<big><b>{content}</b></big>"
             values["top_right"] = "{sg_status_list}"
             values["body"] = """
-                {[Assigned to ]task_assignees[<br>]}
                 {entity::showtype[<br>]}
+                ID: {id}<br>
+                {[Step: ]step[<br>]}
+                {[Assigned to: ]task_assignees[<br>]}
                 {[Starts: ]start_date}{[ Due:]due_date}
                 """            
 
@@ -160,8 +172,7 @@ class ShotgunFields(HookBaseClass):
                                     "sg_start",
                                     "sg_status",
                                     "tank_name",
-                                    "sg_type",
-                                    "users"] 
+                                    "sg_type"]
 
         elif entity_type == "Asset":
             values = std_values + ["sg_asset_type", 
@@ -219,7 +230,7 @@ class ShotgunFields(HookBaseClass):
                                    "sg_task",
                                    "sg_version_type"]
             
-        elif entity_type == "PublishedFile":
+        elif entity_type == "PublishedFile" or entity_type == "TankPublishedFile":
             values = std_values + [ "entity", 
                                     "name",
                                     "published_file_type",
@@ -264,7 +275,11 @@ class ShotgunFields(HookBaseClass):
         
         values = {
             "title": "{type} {code}",
-            "body": "Status: {sg_status_list}<br>Description: {description}"
+            "body": """
+                    Status: {sg_status_list}<br>
+                    Description: {description}<br>
+                    ID: {id}<br>
+                    """
         }
         
         
@@ -307,36 +322,54 @@ class ShotgunFields(HookBaseClass):
             values["body"] = """
                 Sequence: {sg_sequence}<br>
                 Status: {sg_status_list}<br>
-                {[Cut In: ]sg_cut_in[  ]}{[Cut Out:]sg_cut_out[  ]}{[Duration: ]sg_cut_duration}<br>
+                ID: {id}<br>
+                {[Cut In: ]sg_cut_in[  ]}<br>{[Cut Out:]sg_cut_out[  ]}<br>{[Duration: ]sg_cut_duration}<br>
                 Description: {description}
                 """
     
         elif entity_type == "Task":
             values["title"] = "Task {content}"
             values["body"] = """
-            
                 <big>Status: {sg_status_list}</big><br>
                 {entity::showtype[<br>]}
+                ID: {id}<br>
+                {[Step: ]step[<br>]}
                 {[Assigned to: ]task_assignees[<br>]}
-                {[Starts: ]start_date}{[ Due: ]due_date}
+                {[Starts: ]start_date}{[ Due:]due_date}
                 """
                 
         elif entity_type == "Asset":
             values["body"] = """
                 Asset Type: {sg_asset_type}<br>
                 Status: {sg_status_list}<br>
+                ID: {id}<br>
                 Description: {description}
                 """
                     
         elif entity_type == "Project":
             values["title"] = "Project {name}"
-            
-            values["body"] = """
-                <b>Status: {sg_status}<br>
-                {[Start Date: ]start_date[<br>]}
-                {[End Date: ]end_date[<br>]}
-                Description: {sg_description}
-                """
+
+            if self.parent.tank.pipeline_configuration:
+                pc_name = self.parent.tank.pipeline_configuration.get_name()
+                pc_id = self.parent.tank.pipeline_configuration.get_shotgun_id()
+                values["body"] = """
+                    <b>Status: {sg_status}<br>
+                    ID: {id}<br>
+                    """
+                values["body"] += "Pipeline Config: {0}(ID {1})<br>".format(pc_name, pc_id)
+                values["body"] += """
+                    {[Start Date: ]start_date[<br>]}
+                    {[End Date: ]end_date[<br>]}
+                    Description: {sg_description}
+                    """
+            else:
+                values["body"] = """
+                    <b>Status: {sg_status}<br>
+                    ID: {id}<br>
+                    {[Start Date: ]start_date[<br>]}
+                    {[End Date: ]end_date[<br>]}
+                    Description: {sg_description}
+                    """
                 
         elif entity_type == "Note":
             values["title"] = "{subject}"
@@ -354,6 +387,7 @@ class ShotgunFields(HookBaseClass):
             
             values["body"] = """
                 <big>{published_file_type}, Version {version_number}</big><br>
+                ID: {id}<br>
                 For {entity::showtype}{[, Task ]task} <br>
                 Created by {created_by} on {created_at}<br>
             
@@ -370,6 +404,7 @@ class ShotgunFields(HookBaseClass):
             values["body"] = """
                 {entity::showtype}{[, Task ]sg_task} <br>
                 Status: {sg_status_list}<br>
+                ID: {id}<br>
                 Created by {user|created_by} on {created_at}<br>
                 {[<br>Client approved by: ]client_approved_by[<br>]}
                 {[<br>In Playlists: ]playlists[<br>]}

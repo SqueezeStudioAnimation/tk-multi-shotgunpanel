@@ -71,7 +71,7 @@ class SgEntityListingModel(ShotgunModel):
         """
         return False
 
-    def load_data(self, sg_location, additional_fields=None, sort_field=None):
+    def load_data(self, sg_location, additional_fields=None, sort_field=None, direction="desc"):
         """
         Clears the model and sets it up for a particular entity.
         Loads any cached data that exists and schedules an async refresh.
@@ -88,6 +88,7 @@ class SgEntityListingModel(ShotgunModel):
                outside the model itself, so not strictly part of this class, 
                but rather defined outside in the main dialog). The sort field
                is the main 'text' field in the model that is set.
+        :param direction: Order direction user to gather the data. Can be "desc" or "asc
         """
         self._sg_location = sg_location
         
@@ -106,7 +107,7 @@ class SgEntityListingModel(ShotgunModel):
                                 hierarchy, 
                                 fields, 
                                 [{"field_name": sort_field, 
-                                  "direction": "desc"}],
+                                  "direction": direction}],
                                 limit=self.SG_RECORD_LIMIT)
         self._refresh_data()
 

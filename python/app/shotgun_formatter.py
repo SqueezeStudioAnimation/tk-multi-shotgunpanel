@@ -80,7 +80,7 @@ class ShotgunTypeFormatter(object):
         if entity_type == "Note":
             fields.append("read_by_current_user")
             fields.append("client_note")
-        if entity_type == "PublishedFile":
+        if entity_type == "PublishedFile" or entity_type == "TankPublishedFile":
             fields.append("path")
         
         self._token_fields = set(fields)
@@ -547,6 +547,7 @@ class ShotgunTypeFormatter(object):
                 link_filters.append(["task_assignees", "in", [sg_location.entity_dict]])
                 link_filters.append(["sg_status_list", "is_not", "fin"])
                 link_filters.append(["sg_status_list", "is_not", "omt"])
+                link_filters.append(["sg_type", "is_not", "Ticket"])
                 if context_project:
                     # we are in a non-site context. only tasks from this project
                     link_filters.append(["project", "is", context_project])
@@ -643,6 +644,7 @@ class ShotgunTypeFormatter(object):
 
             elif self._entity_type == "Task":
                 link_filters.append(["sibling_tasks", 'is', sg_location.entity_dict])
+                link_filters.append(["sg_status_list", "is_not", "omt"])
 
             else:
                 link_filters.append(["entity", "is", sg_location.entity_dict])
@@ -817,7 +819,7 @@ class ShotgunEntityFormatter(ShotgunTypeFormatter):
         Should the info tab be shown for this
         """
         if self.entity_type == "Project":
-            return (False, "")
+            return (True, "Details")
         elif self.is_current_user and self.entity_type == "HumanUser":
             return (False, "")
         else:

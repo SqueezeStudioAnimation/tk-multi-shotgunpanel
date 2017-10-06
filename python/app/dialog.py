@@ -95,7 +95,6 @@ class AppDialog(QtGui.QWidget):
         Constructor
         """
 
-        '''
         import sys, os
         paths = (
             '/opt/squeeze/PyCharm/helpers/pydev',
@@ -114,7 +113,6 @@ class AppDialog(QtGui.QWidget):
             sys.path.append(path)
         import pydevd
         pydevd.settrace('localhost', port=64304, stdoutToServer=True, stderrToServer=True, suspend=False)
-        '''
 
         # first, call the base class and let it do its thing.
         QtGui.QWidget.__init__(self, parent)
@@ -615,7 +613,9 @@ class AppDialog(QtGui.QWidget):
             )
             
         elif index == self.ENTITY_TAB_TASKS:
-            self._detail_tabs[(self.ENTITY_PAGE_IDX, index)]["model"].load_data(self._current_location)
+            self._detail_tabs[(self.ENTITY_PAGE_IDX, index)]["model"].load_data(self._current_location,
+                                                                                sort_field="sg_task_order",
+                                                                                direction="asc")
         
         elif index == self.ENTITY_TAB_INFO:
             self._entity_details_model.load_data(self._current_location)

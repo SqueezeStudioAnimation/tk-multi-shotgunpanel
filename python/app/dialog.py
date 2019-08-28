@@ -40,6 +40,7 @@ settings = sgtk.platform.import_framework("tk-framework-shotgunutils", "settings
 shotgun_data = sgtk.platform.import_framework("tk-framework-shotgunutils", "shotgun_data")
 shotgun_globals = sgtk.platform.import_framework("tk-framework-shotgunutils", "shotgun_globals")
 
+shotgun_menus = sgtk.platform.import_framework("tk-framework-qtwidgets", "shotgun_menus")
 overlay_module = sgtk.platform.import_framework("tk-framework-qtwidgets", "overlay_widget")
 ShotgunModelOverlayWidget = overlay_module.ShotgunModelOverlayWidget
 
@@ -152,8 +153,7 @@ class AppDialog(QtGui.QWidget):
 
         # set up action menu. parent it to the action button to prevent cases
         # where it shows up elsewhere on screen (as in Houdini)
-        self._menu = QtGui.QMenu(self.ui.action_button)
-        self._actions = []
+        self._menu = shotgun_menus.ShotgunMenu(self.ui.action_button)
         self.ui.action_button.setMenu(self._menu)        
 
         # this forces the menu to be right aligned with the button. This is
@@ -598,9 +598,13 @@ class AppDialog(QtGui.QWidget):
             self.ui.entity_activity_stream.load_data(self._current_location.entity_dict)
 
         elif index == self.ENTITY_TAB_NOTES:
+            # clear selection to avoid redrawing the ui over and over
+            self._detail_tabs[(self.ENTITY_PAGE_IDX, index)]["view"].selectionModel().clear()
             self._detail_tabs[(self.ENTITY_PAGE_IDX, index)]["model"].load_data(self._current_location)
             
         elif index == self.ENTITY_TAB_VERSIONS:
+            # clear selection to avoid redrawing the ui over and over
+            self._detail_tabs[(self.ENTITY_PAGE_IDX, index)]["view"].selectionModel().clear()
             show_pending_only = self.ui.pending_versions_only.isChecked()
             self._detail_tabs[(self.ENTITY_PAGE_IDX, index)]["model"].load_data(
                 self._current_location,
@@ -608,6 +612,8 @@ class AppDialog(QtGui.QWidget):
             )
         
         elif index == self.ENTITY_TAB_PUBLISHES:
+            # clear selection to avoid redrawing the ui over and over
+            self._detail_tabs[(self.ENTITY_PAGE_IDX, index)]["view"].selectionModel().clear()
             show_latest_only = self.ui.latest_publishes_only.isChecked()
             self._detail_tabs[(self.ENTITY_PAGE_IDX, index)]["model"].load_data(
                 self._current_location,
@@ -615,6 +621,8 @@ class AppDialog(QtGui.QWidget):
             )
             
         elif index == self.ENTITY_TAB_TASKS:
+            # clear selection to avoid redrawing the ui over and over
+            self._detail_tabs[(self.ENTITY_PAGE_IDX, index)]["view"].selectionModel().clear()
             self._detail_tabs[(self.ENTITY_PAGE_IDX, index)]["model"].load_data(self._current_location)
         
         elif index == self.ENTITY_TAB_INFO:
@@ -735,12 +743,12 @@ class AppDialog(QtGui.QWidget):
             self.ui.details_text_middle.setText("")
             
         # load actions
-        actions = self._action_manager.get_actions(sg_data, 
-                                                   self._action_manager.UI_AREA_DETAILS)
-        self._actions = actions
-        for a in self._actions:
-            self._menu.addAction(a)
-            
+        self._action_manager.populate_menu(
+            self._menu,
+            sg_data,
+            self._action_manager.UI_AREA_DETAILS
+        )
+
     ###################################################################################################
     # UI callbacks
     def _on_entity_doubleclicked(self, model_index):
@@ -830,7 +838,8 @@ class AppDialog(QtGui.QWidget):
         
         # set the current location
         self._current_location = shotgun_location 
-        
+        self._app._log_metric_viewed_panel(shotgun_location.entity_type)
+
         # and set up the UI for this new location
         self._navigating = True
         try:
@@ -865,6 +874,13 @@ class AppDialog(QtGui.QWidget):
         if sg_user_data:
             sg_location = ShotgunLocation(sg_user_data["type"], sg_user_data["id"])
             self._navigate_to(sg_location)
+        else:
+            self._app.log_warning(
+                "Navigation to the current user is not supported when "
+                "the Shotgun user cannot be determined. This is often the "
+                "case when Toolkit has been authenticated using a script key "
+                "rather than with a user name and password."
+            )
         
     def _on_home_clicked(self):
         """
@@ -980,6 +996,16 @@ class AppDialog(QtGui.QWidget):
                     # basic validation
                     if not dialog.new_task_name:
                         self._app.log_error("Please name your task!")
+                        return
+
+                    if self._app.context.user is None:
+                        self._app.log_error(
+                            "Shotgun Toolkit does not know what Shotgun user you are. "
+                            "This can be due to the use of a script key for authentication "
+                            "rather than using a user name and password login. To create and "
+                            "assign a Task, you will need to log in using you Shotgun user "
+                            "account."
+                        )
                         return
 
                     # create new task and assign!

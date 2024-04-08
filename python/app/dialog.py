@@ -116,6 +116,7 @@ class AppDialog(QtGui.QWidget):
         """
         Constructor
         """
+
         # first, call the base class and let it do its thing.
         QtGui.QWidget.__init__(self, parent)
 
@@ -228,6 +229,10 @@ class AppDialog(QtGui.QWidget):
         self._overlay.show_message_pixmap(splash_pix)
         QtCore.QCoreApplication.processEvents()
         QtCore.QTimer.singleShot(SPLASH_UI_TIME_MILLISECONDS, self._overlay.hide)
+
+        # Doesn't see to work at all !
+        if self._app.context.project:
+            self.setWindowTitle('Shotgun: Project {}'.format(self._app.context.project.get('name', 'Unknown')))
 
     def closeEvent(self, event):
         """

@@ -51,6 +51,7 @@ class ShotgunFilters(HookBaseClass):
                 # show tasks i am assigned to
                 link_filters.append(["task_assignees", "in", [sg_location.entity_dict]])
                 link_filters.append(["sg_status_list", "is_not", "fin"])
+                link_filters.append(["sg_status_list", "is_not", "omt"])
 
             elif (
                 entity_type == "Note"
@@ -148,6 +149,7 @@ class ShotgunFilters(HookBaseClass):
 
             elif entity_type == "Task":
                 link_filters.append(["sibling_tasks", "is", sg_location.entity_dict])
+                link_filters.append(["sg_status_list", "is_not", "omt"])
 
             else:
                 link_filters.append(["entity", "is", sg_location.entity_dict])
@@ -175,6 +177,7 @@ class ShotgunFilters(HookBaseClass):
 
                 link_filters.append(["task_assignees", "in", [context_user]])
                 link_filters.append(["sg_status_list", "is_not", "fin"])
+                link_filters.append(["sg_status_list", "is_not", "omt"])
                 link_filters.append(["project", "is", sg_location.entity_dict])
 
             else:

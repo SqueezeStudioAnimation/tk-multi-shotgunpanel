@@ -164,4 +164,4 @@ class ListItemWidget(QtGui.QWidget):
 
         :returns: Size of the widget
         """
-        return QtCore.QSize(300, 102)
+        return QtCore.QSize(300, 125)

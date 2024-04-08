@@ -102,7 +102,7 @@ class ShotgunTypeFormatter(object):
             fields.append("read_by_current_user")
             fields.append("client_note")
             fields.append("project")
-        if entity_type == "PublishedFile":
+        if entity_type == "PublishedFile" or entity_type == "TankPublishedFile":
             fields.append("path")
             fields.append("project")
         if entity_type == "Task":
